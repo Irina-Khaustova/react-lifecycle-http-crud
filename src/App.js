@@ -1,60 +1,78 @@
-import {useEffect, useState} from "react"
-import './App.css';
+import React from "react";
+import { useEffect, useState } from "react";
+import "./App.css";
 import Notes from "./components/front/Notes";
 import Form from "./components/front/Form";
-import {nanoid} from 'nanoid';
-
 
 function App() {
-  
   const [notes, setNotes] = useState([]);
   const [form, setForm] = useState({
-    value: ''
-  })
+    value: "",
+  });
 
-  //useEffect (() => {
-   // fetch(process.env.REACT_APP_SERVER)
-      // .then(response => console.log(response))
-      //.then((getNotes) => {
-       // console.log(JSON.stringify(getNotes, null, 2))
-      //})
-  // },)
+  function getNotes() {
+    fetch("http://localhost:9999/notes")
+      .then((response) => response.json())
+      .then((getNotes) => {
+        setNotes(getNotes);
+      });
+  }
 
-  const handleChange = function(evt) {
+  useEffect(() => {
+    getNotes();
+  }, []);
+
+  const handleChange = function (evt) {
     const formValue = evt.target.value;
-    setForm(prevForm => ({...prevForm, value: formValue}))
-  }
+    setForm((prevForm) => ({ ...prevForm, value: formValue }));
+  };
 
-  const handleAdd = function() {
-  //   const newNote = {
-  //     "id": `${nanoid()}`,
-  //     "content": `${form.value}`
-  // }
+  const handleAdd = function () {
+    const time = new Date();
+    const newNote = form.value;
 
-  // fetch(process.env.REACT_APP_SERVER, {
-  //   method: 'POST',
-  //   body: JSON.stringify(newNote)
-  // })
+    if (newNote) {
+      fetch("http://localhost:9999/notes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ notes: newNote }),
+      });
 
-  notes.push({
-    "id": `${nanoid()}`,
-    "content": `${form.value}`
-})
-  console.log(notes)
-  setNotes(notes)
-  console.log(notes)
+      setForm({
+        value: "",
+      });
+      getNotes();
+    }
+  };
 
-  setForm({
-    value: ''
-  })
-  }
+  const handleDelete = function (id) {
+    fetch(`http://localhost:9999/notes/${id}`, {
+      method: "DELETE",
+    });
 
-  console.log(notes)
+    getNotes();
+  };
+
+  const handleUpdate = function () {
+    getNotes();
+  };
 
   return (
     <div className="App">
-      <Notes className="notes" noteList={notes}/>
-      <Form className="form" form={form} onhandleChange={handleChange} onHandleAdd={handleAdd}/>
+      <Notes
+        className="notes"
+        noteList={notes}
+        onHandleDelete={handleDelete}
+        onHandleUpdate={handleUpdate}
+      />
+      <Form
+        className="form"
+        form={form}
+        onhandleChange={handleChange}
+        onHandleAdd={handleAdd}
+      />
     </div>
   );
 }
